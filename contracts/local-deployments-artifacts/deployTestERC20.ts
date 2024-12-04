@@ -26,6 +26,7 @@ async function main() {
     } else {
       walletNonce = parseInt(process.env.L1_NONCE) + ORDERED_NONCE_POST_LINEAROLLUP + ORDERED_NONCE_POST_TOKENBRIDGE;
     }
+    console.log("The nonce to deploy test ERC20 is " + walletNonce + " (address " + wallet.address + ")");
   } else {
     if (!process.env.L2_NONCE) {
       walletNonce = await wallet.getNonce();

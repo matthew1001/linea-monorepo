@@ -61,6 +61,7 @@ async function main() {
   } else {
     walletNonce = parseInt(process.env.L1_NONCE);
   }
+  console.log("The nonce to deploy plonk verifier is " + walletNonce + " (address " + wallet.address + ")");
 
   const [verifier, lineaRollupImplementation, proxyAdmin] = await Promise.all([
     deployContractFromArtifacts(verifierArtifacts.abi, verifierArtifacts.bytecode, wallet, {

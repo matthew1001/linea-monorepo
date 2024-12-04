@@ -86,7 +86,7 @@ allprojects {
       // set showStandardStreams if you need to see test logs
       showStandardStreams false
     }
-    systemProperty("L1_RPC_URL", "http://localhost:8445")
+    systemProperty("L1_RPC_URL", "http://localhost:38555")
     systemProperty("L2_RPC_URL", "http://localhost:8545")
     systemProperty("L1_GENESIS", "docker/config/l1-node/el/genesis.json")
     systemProperty("L2_GENESIS", "docker/config/linea-local-dev-genesis.json")

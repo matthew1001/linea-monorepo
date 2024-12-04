@@ -43,10 +43,19 @@ async function main() {
 
   if (process.env.TOKEN_BRIDGE_L1 === "true") {
     if (process.env.L1_NONCE === undefined) {
+      console.log("Token bridge nonce. No env var L1_NONCE so getting from the chain...");
       walletNonce = await wallet.getNonce();
     } else {
+      console.log(
+        "Token bridge nonce. Env var is set to " +
+          parseInt(process.env.L1_NONCE) +
+          " so using parseInt(process.env.L1_NONCE) + ORDERED_NONCE_POST_LINEAROLLUP =  " +
+          parseInt(process.env.L1_NONCE) +
+          ORDERED_NONCE_POST_LINEAROLLUP,
+      );
       walletNonce = parseInt(process.env.L1_NONCE) + ORDERED_NONCE_POST_LINEAROLLUP;
     }
+    console.log("The nonce to deploy the token bridge is " + walletNonce + " (address " + wallet.address + ")");
   } else {
     if (process.env.L2_NONCE === undefined) {
       walletNonce = await wallet.getNonce();
