@@ -991,7 +991,7 @@
     }
   },
   "coinbase": "0x0000000000000000000000000000000000000000",
-  "baseFeePerGas": "0x7",
+  "baseFeePerGas": "0x0",
   "difficulty": "0x01",
   "extraData": "",
   "gasLimit": "0x1c9c380",
