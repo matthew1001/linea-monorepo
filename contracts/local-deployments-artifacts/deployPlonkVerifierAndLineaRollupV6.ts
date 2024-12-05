@@ -80,15 +80,15 @@ async function main() {
   console.log("The nonce to deploy V6 L1 rollup is " + walletNonce + " (address " + wallet.address + ")");
 
   const [verifier, lineaRollupImplementation, proxyAdmin] = await Promise.all([
-    deployContractFromArtifacts(verifierArtifacts.abi, verifierArtifacts.bytecode, wallet, {
+    deployContractFromArtifacts("Msg", verifierArtifacts.abi, verifierArtifacts.bytecode, wallet, {
       nonce: walletNonce,
       gasPrice,
     }),
-    deployContractFromArtifacts(LineaRollupV6Abi, LineaRollupV6Bytecode, wallet, {
+    deployContractFromArtifacts("Msg", LineaRollupV6Abi, LineaRollupV6Bytecode, wallet, {
       nonce: walletNonce + 1,
       gasPrice,
     }),
-    deployContractFromArtifacts(ProxyAdminAbi, ProxyAdminBytecode, wallet, { nonce: walletNonce + 2, gasPrice }),
+    deployContractFromArtifacts("Msg", ProxyAdminAbi, ProxyAdminBytecode, wallet, { nonce: walletNonce + 2, gasPrice }),
   ]);
 
   const proxyAdminAddress = await proxyAdmin.getAddress();
@@ -115,6 +115,7 @@ async function main() {
   ]);
 
   const proxyContract = await deployContractFromArtifacts(
+    "Msg",
     TransparentUpgradeableProxyAbi,
     TransparentUpgradeableProxyBytecode,
     wallet,
