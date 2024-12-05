@@ -29,18 +29,27 @@ async function main() {
   }
 
   const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+  const chainId = (await provider.getNetwork()).chainId;
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
   let walletNonce;
 
+  console.log(` -> Deploy L2 message service to chain ${chainId}. Wallet nonce currently ${await wallet.getNonce()}`);
+
   if (!process.env.L2_NONCE) {
     walletNonce = await wallet.getNonce();
+    console.log(`   -> Deploy L2 chain ${chainId} message service, using retrieved nonce value ${walletNonce}`);
   } else {
     walletNonce = parseInt(process.env.L2_NONCE);
+    console.log(`   -> Deploy L2 chain ${chainId} message service, using forced nonce value ${walletNonce}`);
   }
 
   const [l2MessageServiceImplementation, proxyAdmin] = await Promise.all([
-    deployContractFromArtifacts(L2MessageServiceAbi, L2MessageServiceBytecode, wallet, { nonce: walletNonce }),
-    deployContractFromArtifacts(ProxyAdminAbi, ProxyAdminBytecode, wallet, { nonce: walletNonce + 1 }),
+    deployContractFromArtifacts("Message L2 contract", L2MessageServiceAbi, L2MessageServiceBytecode, wallet, {
+      nonce: walletNonce,
+    }),
+    deployContractFromArtifacts("Message L2 proxy", ProxyAdminAbi, ProxyAdminBytecode, wallet, {
+      nonce: walletNonce + 1,
+    }),
   ]);
 
   const proxyAdminAddress = await proxyAdmin.getAddress();
@@ -70,6 +79,7 @@ async function main() {
   ]);
 
   const proxyContract = await deployContractFromArtifacts(
+    "Message L2 upgradeable proxy",
     TransparentUpgradeableProxyAbi,
     TransparentUpgradeableProxyBytecode,
     wallet,
