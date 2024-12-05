@@ -39,6 +39,7 @@ async function main() {
   const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
   const chainId = (await provider.getNetwork()).chainId;
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
+  let isL1 = false;
 
   let walletNonce;
 
@@ -47,6 +48,7 @@ async function main() {
   );
 
   if (process.env.TOKEN_BRIDGE_L1 === "true") {
+    isL1 = true;
     if (process.env.L1_NONCE === undefined) {
       console.log("Token bridge nonce. No env var L1_NONCE so getting from the chain...");
       walletNonce = await wallet.getNonce();
@@ -108,6 +110,7 @@ async function main() {
     UpgradeableBeaconBytecode,
     wallet,
     bridgedTokenAddress,
+    isL1 ? { nonce: 7 } : {},
   );
 
   const beaconProxyAddress = await beaconProxy.getAddress();
@@ -153,6 +156,7 @@ async function main() {
     tokenBridgeImplementationAddress,
     proxyAdminAddress,
     initializer,
+    isL1 ? { nonce: 8 } : {},
   );
 
   const proxyContractAddress = await proxyContract.getAddress();
