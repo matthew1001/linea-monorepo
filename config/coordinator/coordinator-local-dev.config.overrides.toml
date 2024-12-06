@@ -46,7 +46,7 @@ geth-gas-price-update-recipients = ["http://127.0.0.1:8845"]
 besu-gas-price-update-recipients = []
 
 [l1]
-rpc-endpoint="http://127.0.0.1:8445"
+rpc-endpoint="http://127.0.0.1:38555"
 blocks-to-finalization=2
 # blocks are 2s, this may catch in between blocks
 send-message-event-polling-interval="PT1S"

@@ -68,7 +68,7 @@ class MinMineableFeesPricerServiceIntegrationTest {
   private val besuRecipients = listOf(l2ValidatorRpcEndpoint)
 
   // Set org.web3j.protocol.http to DEBUG in log4j2.xml to debug requests/responses
-  private val l1Web3jClient = Web3j.build(HttpService("http://localhost:8445"))
+  private val l1Web3jClient = Web3j.build(HttpService("http://localhost:38555"))
   private val l2ValidatorWeb3jClient = Web3j.build(HttpService(l2ValidatorRpcEndpoint))
   private val l2NodeWeb3jClient = Web3j.build(HttpService(l2NodeRpcEndpoint))
 
@@ -338,7 +338,7 @@ class MinMineableFeesPricerServiceIntegrationTest {
     val feesFetcher: FeesFetcher = FeeHistoryFetcherImpl(
       web3jClient = l1Web3jClient,
       web3jService = Web3jBlobExtended(
-        HttpService(System.getProperty("L1_RPC_URL", "http://localhost:8445"))
+        HttpService(System.getProperty("L1_RPC_URL", "http://localhost:38555"))
       ),
       config = FeeHistoryFetcherImpl.Config(
         feeHistoryBlockCount,

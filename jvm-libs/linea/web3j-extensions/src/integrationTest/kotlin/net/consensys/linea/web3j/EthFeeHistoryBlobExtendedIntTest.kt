@@ -8,7 +8,7 @@ import org.web3j.protocol.http.HttpService
 class EthFeeHistoryBlobExtendedIntTest {
   @Test
   fun `eth_feeHistory response is deserialised correctly with blob data`() {
-    val web3jBlobExtended = Web3jBlobExtended(HttpService("http://localhost:8445"))
+    val web3jBlobExtended = Web3jBlobExtended(HttpService("http://localhost:38555"))
     web3jBlobExtended.ethFeeHistoryWithBlob(
       blockCount = 5,
       newestBlock = DefaultBlockParameter.valueOf("latest"),

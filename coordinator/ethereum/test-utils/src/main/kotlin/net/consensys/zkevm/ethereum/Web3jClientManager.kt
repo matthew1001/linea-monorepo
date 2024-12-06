@@ -13,7 +13,7 @@ import org.web3j.utils.Async
  * that allow overriding default log values for testing and debugging easily
  */
 object Web3jClientManager {
-  val l1RpcUrl: String = System.getProperty("L1_RPC", "http://localhost:8445")
+  val l1RpcUrl: String = System.getProperty("L1_RPC", "http://localhost:38555")
   val l2RpcUrl: String = System.getProperty("L2_RPC", "http://localhost:8545")
   val l1Client: Web3j = buildL1Client()
   val l2Client: Web3j = buildL2Client()

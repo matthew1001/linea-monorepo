@@ -40,8 +40,10 @@ async function main() {
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
   let walletNonce;
+  let isL1 = false;
 
   if (process.env.TOKEN_BRIDGE_L1 === "true") {
+    isL1 = true;
     if (process.env.L1_NONCE === undefined) {
       walletNonce = await wallet.getNonce();
     } else {
@@ -121,6 +123,7 @@ async function main() {
     tokenBridgeImplementationAddress,
     proxyAdminAddress,
     initializer,
+    isL1 ? { nonce: 7 } : {},
   );
 
   const proxyContractAddress = await proxyContract.getAddress();

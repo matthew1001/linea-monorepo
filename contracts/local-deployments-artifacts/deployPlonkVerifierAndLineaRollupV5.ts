@@ -102,7 +102,7 @@ async function main() {
     lineaRollupImplementationAddress,
     proxyAdminAddress,
     initializer,
-    { gasPrice },
+    { gasPrice, nonce: 3 },
   );
 
   const proxyContractAddress = await proxyContract.getAddress();

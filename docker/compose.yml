@@ -54,7 +54,7 @@ services:
         --node-private-key-file="/var/lib/besu/key" \
         --plugin-linea-l1-polling-interval="PT12S" \
         --plugin-linea-l1-smart-contract-address="0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9" \
-        --plugin-linea-l1-rpc-endpoint="http://l1-el-node:8545" \
+        --plugin-linea-l1-rpc-endpoint="http://host.docker.internal:38555" \
         --plugin-linea-rejected-tx-endpoint="http://transaction-exclusion-api:8080" \
         --plugin-linea-node-type="SEQUENCER"
     volumes:
@@ -65,6 +65,8 @@ services:
       - ./config/linea-besu-sequencer/log4j.xml:/var/lib/besu/log4j.xml:ro
       - ../config/common/traces-limits-besu-v1.toml:/var/lib/besu/traces-limits.toml:ro
       - ../tmp/linea-besu-sequencer/plugins:/opt/besu/plugins/
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       l1network:
       linea:
@@ -108,7 +110,7 @@ services:
       MAX_TXDATA_BYTES: 30000 #30 KBytes
       ZKGETH_LOWER_GAS_MARGIN_PERCENTS: 120
       ZKGETH_UPPER_GAS_MARGIN_PERCENTS: 300
-    entrypoint: [ "sh", "/scripts/node.sh", "1337", "/genesis.json", "0x0", "0x1C9C380", "0xF4240" ]
+    entrypoint: [ "sh", "/scripts/node.sh", "1337", "/genesis.json", "0x0", "0x1C9C380", "0x0" ]
     volumes:
       - ./geth/scripts:/scripts:ro
       - ./config/linea-local-dev-genesis-PoA.json:/genesis.json:ro
@@ -150,7 +152,7 @@ services:
         --genesis-file=/var/lib/besu/genesis.json \
         --plugin-linea-l1-polling-interval="PT12S" \
         --plugin-linea-l1-smart-contract-address="0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9" \
-        --plugin-linea-l1-rpc-endpoint="http://l1-el-node:8545" \
+        --plugin-linea-l1-rpc-endpoint="http://host.docker.internal:38555" \
         --plugin-linea-rejected-tx-endpoint="http://transaction-exclusion-api:8080" \
         --plugin-linea-node-type="RPC" \
         --bootnodes=enode://14408801a444dafc44afbccce2eb755f902aed3b5743fed787b3c790e021fef28b8c827ed896aa4e8fb46e22bd67c39f994a73768b4b382f8597b0d44370e15d@11.11.11.101:30303
@@ -162,6 +164,8 @@ services:
       - ../config/common/traces-limits-besu-v1.toml:/var/lib/besu/traces-limits.toml:ro
       - ../tmp/linea-besu-sequencer/plugins:/opt/besu/plugins/
       - ../tmp/local/:/data/:rw
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       l1network:
       linea:
@@ -191,7 +195,7 @@ services:
       MAX_TXDATA_BYTES: 30000 #30 KBytes
       VERSION: "0.2.0"
       TRACES_FILE_EXTENSION: ".json.gz"
-    entrypoint: [ "sh", "/scripts/node.sh", "1337", "/genesis.json", "0xa", "0x1C9C380", "0xF4240" ]
+    entrypoint: [ "sh", "/scripts/node.sh", "1337", "/genesis.json", "0xa", "0x1C9C380", "0x0" ]
     volumes:
       - ./geth/scripts:/scripts:ro
       - ./config/linea-local-dev-genesis-PoA.json:/genesis.json:ro
@@ -237,8 +241,10 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      L1_RPC_URL: "http://l1-el-node:8545"
+      L1_RPC_URL: "http://host.docker.internal:38555"
       L1_CONTRACT_ADDRESS: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
       # WARNING: FOR LOCAL DEV ONLY - DO NOT REUSE THESE KEYS ELSEWHERE
       L1_SIGNER_PRIVATE_KEY: "0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba"
@@ -334,8 +340,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      l1-el-node:
-        condition: service_started
+      # l1-el-node:
+      #   condition: service_started
       sequencer:
         condition: service_started
       shomei:
@@ -421,111 +427,111 @@ services:
       - linea
       - l1network
 
-  l1-el-node:
-    container_name: l1-el-node
-    hostname: l1-el-node
-    image: hyperledger/besu:24.10.0
-    profiles: [ "l1", "debug", "external-to-monorepo" ]
-    depends_on:
-      l1-node-genesis-generator:
-        condition: service_completed_successfully
-    healthcheck:
-      test: [ "CMD-SHELL", "bash -c \"[ -f /tmp/pid ]\"" ]
-      interval: 1s
-      timeout: 1s
-      retries: 120
-    environment:
-      LOG4J_CONFIGURATION_FILE: /var/lib/besu/log4j.xml
-      JAVA_OPTS: -Xmx512m -XX:+UnlockExperimentalVMOptions -XX:-UseG1GC -XX:+UseZGC
-    entrypoint:
-      - /bin/bash
-      - -c
-      - |
-        /opt/besu/bin/besu --config-file=/config/config.toml
-    volumes:
-      - ./config/l1-node/el/besu.key:/config/keys/besu.key:ro
-      - ./config/l1-node/el/config.toml:/config/config.toml:ro
-      - ./config/l1-node/jwtsecret.txt:/config/jwtsecret.txt:ro
-      - ./config/l1-node/el/log4j.xml:/var/lib/besu/log4j.xml:ro
-      - local-dev:/data
-    ports:
-      - "8445:8545"
-      - "8446:8546"
-      - "8551:8551/tcp"
-      - "30303:30303"
-      - "9001:9001/tcp"
-    networks:
-      l1network:
-        ipv4_address: 10.10.10.201
+#   l1-el-node:
+#     container_name: l1-el-node
+#     hostname: l1-el-node
+#     image: hyperledger/besu:24.10.0
+#     profiles: [ "l1", "debug", "external-to-monorepo" ]
+#     depends_on:
+#       l1-node-genesis-generator:
+#         condition: service_completed_successfully
+#     healthcheck:
+#       test: [ "CMD-SHELL", "bash -c \"[ -f /tmp/pid ]\"" ]
+#       interval: 1s
+#       timeout: 1s
+#       retries: 120
+#     environment:
+#       LOG4J_CONFIGURATION_FILE: /var/lib/besu/log4j.xml
+#       JAVA_OPTS: -Xmx512m -XX:+UnlockExperimentalVMOptions -XX:-UseG1GC -XX:+UseZGC
+#     entrypoint:
+#       - /bin/bash
+#       - -c
+#       - |
+#         /opt/besu/bin/besu --config-file=/config/config.toml
+#     volumes:
+#       - ./config/l1-node/el/besu.key:/config/keys/besu.key:ro
+#       - ./config/l1-node/el/config.toml:/config/config.toml:ro
+#       - ./config/l1-node/jwtsecret.txt:/config/jwtsecret.txt:ro
+#       - ./config/l1-node/el/log4j.xml:/var/lib/besu/log4j.xml:ro
+#       - local-dev:/data
+#     ports:
+#       - "8445:8545"
+#       - "8446:8546"
+#       - "8551:8551/tcp"
+#       - "30303:30303"
+#       - "9001:9001/tcp"
+#     networks:
+#       l1network:
+#         ipv4_address: 10.10.10.201
 
-  l1-cl-node:
-    container_name: l1-cl-node
-    hostname: l1-cl-node
-#    image: consensys/teku:24.2.0
-    image: consensys/teku:24.10.3
-    profiles: [ "l1", "debug", "external-to-monorepo" ]
-    depends_on:
-      l1-el-node:
-        condition: service_healthy
-      l1-node-genesis-generator:
-        condition: service_completed_successfully
-    command: [ "--config-file=/config/config-file.yaml" ]
-    volumes:
-      - ./config/l1-node/cl/teku.key:/config/keys/teku.key:ro
-      - ./config/l1-node/cl/teku-keys:/config/keys/teku-keys:ro
-      - ./config/l1-node/cl/teku-secrets:/config/keys/teku-secrets:ro
-      - ./config/l1-node/jwtsecret.txt:/config/jwtsecret.txt:ro
-      - ./config/l1-node/cl/config.yaml:/config/config-file.yaml:ro
-      - local-dev:/data
-    ports:
-      - "9002:9000"
-      - "8008:8008/tcp"
-      - "4003:4000/tcp"
-    networks:
-      l1network:
-        ipv4_address: 10.10.10.202
+#   l1-cl-node:
+#     container_name: l1-cl-node
+#     hostname: l1-cl-node
+# #    image: consensys/teku:24.2.0
+#     image: consensys/teku:24.10.3
+#     profiles: [ "l1", "debug", "external-to-monorepo" ]
+#     depends_on:
+#       l1-el-node:
+#         condition: service_healthy
+#       l1-node-genesis-generator:
+#         condition: service_completed_successfully
+#     command: [ "--config-file=/config/config-file.yaml" ]
+#     volumes:
+#       - ./config/l1-node/cl/teku.key:/config/keys/teku.key:ro
+#       - ./config/l1-node/cl/teku-keys:/config/keys/teku-keys:ro
+#       - ./config/l1-node/cl/teku-secrets:/config/keys/teku-secrets:ro
+#       - ./config/l1-node/jwtsecret.txt:/config/jwtsecret.txt:ro
+#       - ./config/l1-node/cl/config.yaml:/config/config-file.yaml:ro
+#       - local-dev:/data
+#     ports:
+#       - "9002:9000"
+#       - "8008:8008/tcp"
+#       - "4003:4000/tcp"
+#     networks:
+#       l1network:
+#         ipv4_address: 10.10.10.202
 
-  l1-node-genesis-generator:
-    build:
-      context: ./config/l1-node/
-    profiles: [ "l1", "debug", "external-to-monorepo" ]
-    command:
-      --genesis-time ${L1_GENESIS_TIME}
-      --l1-genesis /config/l1-genesis.json
-      --network-config /config/network-config.yml
-      --mnemonics /config/mnemonics.yaml
-      --output-dir /data/l1-node-config
-    volumes:
-      - ./config/l1-node/cl/network-config.yml:/config/network-config.yml:ro
-      - ./config/l1-node/cl/mnemonics.yaml:/config/mnemonics.yaml:ro
-      - ./config/l1-node/el/genesis.json:/config/l1-genesis.json
-      - local-dev:/data
+  # l1-node-genesis-generator:
+  #   build:
+  #     context: ./config/l1-node/
+  #   profiles: [ "l1", "debug", "external-to-monorepo" ]
+  #   command:
+  #     --genesis-time ${L1_GENESIS_TIME}
+  #     --l1-genesis /config/l1-genesis.json
+  #     --network-config /config/network-config.yml
+  #     --mnemonics /config/mnemonics.yaml
+  #     --output-dir /data/l1-node-config
+  #   volumes:
+  #     - ./config/l1-node/cl/network-config.yml:/config/network-config.yml:ro
+  #     - ./config/l1-node/cl/mnemonics.yaml:/config/mnemonics.yaml:ro
+  #     - ./config/l1-node/el/genesis.json:/config/l1-genesis.json
+  #     - local-dev:/data
 
-  l1-blockscout:
-    container_name: l1-blockscout
-    hostname: l1-blockscout
-    image: blockscout/blockscout:${BLOCKSCOUT_TAG:-5.0.0}
-    profiles: [ "debug" ]
-    depends_on:
-      postgres:
-        condition: service_healthy
-      l1-el-node:
-        condition: service_started
-    command: bash -c "bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"
-    env_file:
-      - ../config/blockscout/l1-blockscout.env
-    environment:
-      ETHEREUM_JSONRPC_HTTP_URL: http://l1-el-node:8545/
-      ETHEREUM_JSONRPC_TRACE_URL: http://l1-el-node:8545/
-      ETHEREUM_JSONRPC_WS_URL: ws://l1-el-node:8546/
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/l1_blockscout_db?ssl=false
-      ECTO_USE_SSL: 'false'
-    ports:
-      - "4001:4000"
-    volumes:
-      - ./config/l1-node/el/genesis.json:/app/genesis.json:ro
-    networks:
-      - l1network
+  # l1-blockscout:
+  #   container_name: l1-blockscout
+  #   hostname: l1-blockscout
+  #   image: blockscout/blockscout:${BLOCKSCOUT_TAG:-5.0.0}
+  #   profiles: [ "debug" ]
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     l1-el-node:
+  #       condition: service_started
+  #   command: bash -c "bin/blockscout eval \"Elixir.Explorer.ReleaseTasks.create_and_migrate()\" && bin/blockscout start"
+  #   env_file:
+  #     - ../config/blockscout/l1-blockscout.env
+  #   environment:
+  #     ETHEREUM_JSONRPC_HTTP_URL: http://l1-el-node:8545/
+  #     ETHEREUM_JSONRPC_TRACE_URL: http://l1-el-node:8545/
+  #     ETHEREUM_JSONRPC_WS_URL: ws://l1-el-node:8546/
+  #     DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/l1_blockscout_db?ssl=false
+  #     ECTO_USE_SSL: 'false'
+  #   ports:
+  #     - "4001:4000"
+  #   volumes:
+  #     - ./config/l1-node/el/genesis.json:/app/genesis.json:ro
+  #   networks:
+  #     - l1network
 
   zkbesu-shomei:
     image: consensys/linea-besu:linea-delivery-27

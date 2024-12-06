@@ -32,7 +32,7 @@ services:
       MAX_TXDATA_BYTES: 30000 #30 KBytes
       ETHSTATS_URL: "linea-sequencer:${WS_SECRET:-dummy-secret}@l2-ethstats:3000"
     entrypoint: ""
-    command: [ "sh", "/scripts/sequencer.sh", "1337", "/genesis.json", "0x0", "0x1C9C380", "0xF4240", "0x6d976c9b8ceee705d4fe8699b44e5eb58242f484" ]
+    command: [ "sh", "/scripts/sequencer.sh", "1337", "/genesis.json", "0x0", "0x1C9C380", "0x0", "0x6d976c9b8ceee705d4fe8699b44e5eb58242f484" ]
     volumes:
       - ./geth/scripts:/scripts:ro
       - ./config/linea-local-dev-genesis-PoA.json:/genesis.json:ro
