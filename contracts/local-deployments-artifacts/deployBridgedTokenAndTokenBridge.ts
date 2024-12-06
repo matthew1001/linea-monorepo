@@ -37,56 +37,35 @@ async function main() {
   const defaultRoleAddresses = generateRoleAssignments(TOKEN_BRIDGE_ROLES, tokenBridgeSecurityCouncil, []);
   const roleAddresses = getEnvVarOrDefault("TOKEN_BRIDGE_ROLE_ADDRESSES", defaultRoleAddresses);
   const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
-  const chainId = (await provider.getNetwork()).chainId;
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
   let walletNonce;
 
-  console.log(
-    ` -> Deploy bridge token and token bridge to chain ${chainId}. Wallet nonce currently ${await wallet.getNonce()}`,
-  );
-
   if (process.env.TOKEN_BRIDGE_L1 === "true") {
     if (process.env.L1_NONCE === undefined) {
       walletNonce = await wallet.getNonce();
-      console.log(
-        `   -> Deploy L1 chain ${chainId} bridged token and token bridge, using retrieved nonce value ${walletNonce}`,
-      );
     } else {
       walletNonce = parseInt(process.env.L1_NONCE) + ORDERED_NONCE_POST_LINEAROLLUP;
-      console.log(
-        `   -> Deploy L1 chain ${chainId} bridged token and token bridge, using forced nonce value ${walletNonce}`,
-      );
     }
   } else {
     if (process.env.L2_NONCE === undefined) {
       walletNonce = await wallet.getNonce();
-      console.log(
-        `   -> Deploy L2 chain ${chainId} bridged token and token bridge, using retrieved nonce value ${walletNonce}`,
-      );
     } else {
       walletNonce = parseInt(process.env.L2_NONCE) + ORDERED_NONCE_POST_L2MESSAGESERVICE;
-      console.log(
-        `   -> Deploy L2 chain ${chainId} bridged token and token bridge, using forced nonce value ${walletNonce}`,
-      );
     }
   }
 
   const [bridgedToken, tokenBridgeImplementation, proxyAdmin] = await Promise.all([
-    deployContractFromArtifacts("Chain " + chainId + " bridged token", BridgedTokenAbi, BridgedTokenBytecode, wallet, {
-      nonce: walletNonce,
-    }),
-    deployContractFromArtifacts("Chain " + chainId + " token bridge", TokenBridgeAbi, TokenBridgeBytecode, wallet, {
-      nonce: walletNonce + 1,
-    }),
-    deployContractFromArtifacts("Chain " + chainId + " bridge proxy admin", ProxyAdminAbi, ProxyAdminBytecode, wallet, {
-      nonce: walletNonce + 2,
-    }),
+    deployContractFromArtifacts(BridgedTokenAbi, BridgedTokenBytecode, wallet, { nonce: walletNonce }),
+    deployContractFromArtifacts(TokenBridgeAbi, TokenBridgeBytecode, wallet, { nonce: walletNonce + 1 }),
+    deployContractFromArtifacts(ProxyAdminAbi, ProxyAdminBytecode, wallet, { nonce: walletNonce + 2 }),
   ]);
 
   const bridgedTokenAddress = await bridgedToken.getAddress();
   const tokenBridgeImplementationAddress = await tokenBridgeImplementation.getAddress();
   const proxyAdminAddress = await proxyAdmin.getAddress();
+
+  const chainId = (await provider.getNetwork()).chainId;
 
   console.log(`${bridgedTokenName} contract deployed at ${bridgedTokenAddress}`);
   console.log(`${tokenBridgeName} Implementation contract deployed at ${tokenBridgeImplementationAddress}`);
@@ -94,7 +73,6 @@ async function main() {
   console.log(`Deploying UpgradeableBeacon: chainId=${chainId} bridgedTokenAddress=${bridgedTokenAddress}`);
 
   const beaconProxy = await deployContractFromArtifacts(
-    "Chain " + chainId + " bridge upgradeable beacon",
     UpgradeableBeaconAbi,
     UpgradeableBeaconBytecode,
     wallet,
@@ -137,7 +115,6 @@ async function main() {
   ]);
 
   const proxyContract = await deployContractFromArtifacts(
-    "Chain " + chainId + " transparent proxy",
     TransparentUpgradeableProxyAbi,
     TransparentUpgradeableProxyBytecode,
     wallet,
