@@ -5,7 +5,7 @@ data-storage-format="FOREST"
 sync-mode="FULL"
 host-whitelist=["*"]
 
-min-gas-price=1000000
+min-gas-price=0
 tx-pool-min-gas-price=0
 max-peers=10
 
@@ -60,8 +60,8 @@ plugin-linea-max-tx-calldata-size=60000
 plugin-linea-max-block-gas=30000000
 plugin-linea-tx-pool-min-margin="0.8"
 plugin-linea-min-margin="1.0"
-plugin-linea-fixed-gas-cost-wei=30000000
-plugin-linea-variable-gas-cost-wei=1000000000
+plugin-linea-fixed-gas-cost-wei=0
+plugin-linea-variable-gas-cost-wei=0
 plugin-linea-extra-data-set-min-gas-price-enabled=false
 plugin-linea-estimate-gas-min-margin="1.2"
 strict-tx-replay-protection-enabled=false
