@@ -12,7 +12,6 @@ export function getInitializerData(contractAbi: InterfaceAbi, initializerFunctio
 }
 
 export async function deployContractFromArtifacts(
-  name: string,
   abi: ethers.InterfaceAbi,
   bytecode: ethers.BytesLike,
   wallet: AbstractSigner,
@@ -21,6 +20,5 @@ export async function deployContractFromArtifacts(
 ) {
   const factory = new ethers.ContractFactory(abi, bytecode, wallet);
   const contract = await factory.deploy(...args);
-  console.log(`    -> ${name} transaction ended up with nonce ${await contract.deploymentTransaction()?.nonce}`);
   return contract.waitForDeployment();
 }
