@@ -50,9 +50,7 @@ async function main() {
   const verifierArtifacts = findContractArtifacts(path.join(__dirname, "./dynamic-artifacts"), verifierName);
 
   const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
-  const chainId = (await provider.getNetwork()).chainId;
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
-  console.log(` -> Deploy L1 plonk verifier to chain ${chainId}. Wallet nonce currently ${await wallet.getNonce()}`);
 
   const { gasPrice } = await get1559Fees(provider);
 
@@ -60,35 +58,20 @@ async function main() {
 
   if (!process.env.L1_NONCE) {
     walletNonce = await wallet.getNonce();
-    console.log(`   -> Deploy L1 chain ${chainId} plonk verifier, using retrieved nonce value ${walletNonce}`);
   } else {
     walletNonce = parseInt(process.env.L1_NONCE);
-    console.log(`   -> Deploy L1 chain ${chainId} plonk verifier, using forced nonce value ${walletNonce}`);
   }
-  console.log("The nonce to deploy plonk verifier is " + walletNonce + " (address " + wallet.address + ")");
 
   const [verifier, lineaRollupImplementation, proxyAdmin] = await Promise.all([
-    deployContractFromArtifacts(
-      "L1  " + chainId + " plonk verifier",
-      verifierArtifacts.abi,
-      verifierArtifacts.bytecode,
-      wallet,
-      {
-        nonce: walletNonce,
-        gasPrice,
-      },
-    ),
-    deployContractFromArtifacts(
-      "L1  " + chainId + " Linea rollup V5",
-      LineaRollupV5Abi,
-      LineaRollupV5Bytecode,
-      wallet,
-      {
-        nonce: walletNonce + 1,
-        gasPrice,
-      },
-    ),
-    deployContractFromArtifacts("L1  " + chainId + " plonk proxy admin", ProxyAdminAbi, ProxyAdminBytecode, wallet, {
+    deployContractFromArtifacts(verifierArtifacts.abi, verifierArtifacts.bytecode, wallet, {
+      nonce: walletNonce,
+      gasPrice,
+    }),
+    deployContractFromArtifacts(LineaRollupV5Abi, LineaRollupV5Bytecode, wallet, {
+      nonce: walletNonce + 1,
+      gasPrice,
+    }),
+    deployContractFromArtifacts(ProxyAdminAbi, ProxyAdminBytecode, wallet, {
       nonce: walletNonce + 2,
       gasPrice,
     }),
@@ -113,7 +96,6 @@ async function main() {
   ]);
 
   const proxyContract = await deployContractFromArtifacts(
-    "L1 chain " + chainId + " plonk upgradeable proxy",
     TransparentUpgradeableProxyAbi,
     TransparentUpgradeableProxyBytecode,
     wallet,

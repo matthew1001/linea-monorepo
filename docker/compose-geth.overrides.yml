@@ -1,7 +1,7 @@
 services:
   sequencer:
     healthcheck:
-      test: ["CMD-SHELL", 'sh -c "[ -f /l2-zkgeth-sequencer/geth/LOCK ]"']
+      test: [ "CMD-SHELL", "sh -c \"[ -f /l2-zkgeth-sequencer/geth/LOCK ]\"" ]
       interval: 1s
       timeout: 1s
       retries: 120
@@ -9,7 +9,7 @@ services:
     container_name: sequencer
     image: consensys/linea-geth:${ZKGETH_TAG:-0588665}
     platform: linux/amd64
-    profiles: ["l2", "l2-bc", "debug"]
+    profiles: [ "l2", "l2-bc", "debug" ]
     ports:
       - "8545:8545"
       - "8546:8546"
@@ -18,7 +18,7 @@ services:
     restart: "no"
     environment:
       DATA_DIR: "/l2-zkgeth-sequencer/"
-      BOOTNODE_PORT: "30301"
+      BOOTNODE_PORT: '30301'
       NETRESTRICT: "11.11.11.0/24"
       ZKGETH_COUNT_ONLY: "true"
       ZKGETH_DISABLE_TRACES: "true"
@@ -27,22 +27,12 @@ services:
       ZKGETH_BLOCK_SIZE_LIMIT: "108592" # 129072(coordinator limit) - 20*1024(safety margin)
       ZKGETH_TRACE_OVERFLOW_NBRETRIES: "10"
       ZKGETH_ADDR_BLACKLIST: "0x0000000000000000000000000000000000000001:0x0000000000000000000000000000000000000002:0x0000000000000000000000000000000000000003:0x0000000000000000000000000000000000000004:0x0000000000000000000000000000000000000005:0x0000000000000000000000000000000000000006:0x0000000000000000000000000000000000000007:0x0000000000000000000000000000000000000008:0x0000000000000000000000000000000000000009"
-      MAX_BLOCK_GAS: 10000000 #10M
+      MAX_BLOCK_GAS: 10000000  #10M
       MAX_BLOCKDATA_BYTES: 35000 #35 KBytes
       MAX_TXDATA_BYTES: 30000 #30 KBytes
       ETHSTATS_URL: "linea-sequencer:${WS_SECRET:-dummy-secret}@l2-ethstats:3000"
     entrypoint: ""
-    command:
-      [
-        "sh",
-        "/scripts/sequencer.sh",
-        "1337",
-        "/genesis.json",
-        "0x0",
-        "0x1C9C380",
-        "0x0",
-        "0x6d976c9b8ceee705d4fe8699b44e5eb58242f484",
-      ]
+    command: [ "sh", "/scripts/sequencer.sh", "1337", "/genesis.json", "0x0", "0x1C9C380", "0x0", "0x6d976c9b8ceee705d4fe8699b44e5eb58242f484" ]
     volumes:
       - ./geth/scripts:/scripts:ro
       - ./config/linea-local-dev-genesis-PoA.json:/genesis.json:ro
